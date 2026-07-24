@@ -9,38 +9,207 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppProfileRouteImport } from './routes/_app.profile'
+import { Route as AppHistoryRouteImport } from './routes/_app.history'
+import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppChangePasswordRouteImport } from './routes/_app.change-password'
+import { Route as AppAdminRouteImport } from './routes/_app.admin'
+import { Route as AppAdminIndexRouteImport } from './routes/_app.admin.index'
+import { Route as AppAdminStorageRouteImport } from './routes/_app.admin.storage'
+import { Route as AppAdminStatisticsRouteImport } from './routes/_app.admin.statistics'
+import { Route as AppAdminProjectsRouteImport } from './routes/_app.admin.projects'
+import { Route as AppAdminMonitorRouteImport } from './routes/_app.admin.monitor'
+import { Route as AppActivityDateRouteImport } from './routes/_app.activity.$date'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHistoryRoute = AppHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppChangePasswordRoute = AppChangePasswordRouteImport.update({
+  id: '/change-password',
+  path: '/change-password',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminRoute = AppAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminIndexRoute = AppAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAdminRoute,
+} as any)
+const AppAdminStorageRoute = AppAdminStorageRouteImport.update({
+  id: '/storage',
+  path: '/storage',
+  getParentRoute: () => AppAdminRoute,
+} as any)
+const AppAdminStatisticsRoute = AppAdminStatisticsRouteImport.update({
+  id: '/statistics',
+  path: '/statistics',
+  getParentRoute: () => AppAdminRoute,
+} as any)
+const AppAdminProjectsRoute = AppAdminProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AppAdminRoute,
+} as any)
+const AppAdminMonitorRoute = AppAdminMonitorRouteImport.update({
+  id: '/monitor',
+  path: '/monitor',
+  getParentRoute: () => AppAdminRoute,
+} as any)
+const AppActivityDateRoute = AppActivityDateRouteImport.update({
+  id: '/activity/$date',
+  path: '/activity/$date',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/admin': typeof AppAdminRouteWithChildren
+  '/change-password': typeof AppChangePasswordRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/history': typeof AppHistoryRoute
+  '/profile': typeof AppProfileRoute
+  '/activity/$date': typeof AppActivityDateRoute
+  '/admin/monitor': typeof AppAdminMonitorRoute
+  '/admin/projects': typeof AppAdminProjectsRoute
+  '/admin/statistics': typeof AppAdminStatisticsRoute
+  '/admin/storage': typeof AppAdminStorageRoute
+  '/admin/': typeof AppAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/change-password': typeof AppChangePasswordRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/history': typeof AppHistoryRoute
+  '/profile': typeof AppProfileRoute
+  '/activity/$date': typeof AppActivityDateRoute
+  '/admin/monitor': typeof AppAdminMonitorRoute
+  '/admin/projects': typeof AppAdminProjectsRoute
+  '/admin/statistics': typeof AppAdminStatisticsRoute
+  '/admin/storage': typeof AppAdminStorageRoute
+  '/admin': typeof AppAdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_app/admin': typeof AppAdminRouteWithChildren
+  '/_app/change-password': typeof AppChangePasswordRoute
+  '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/history': typeof AppHistoryRoute
+  '/_app/profile': typeof AppProfileRoute
+  '/_app/activity/$date': typeof AppActivityDateRoute
+  '/_app/admin/monitor': typeof AppAdminMonitorRoute
+  '/_app/admin/projects': typeof AppAdminProjectsRoute
+  '/_app/admin/statistics': typeof AppAdminStatisticsRoute
+  '/_app/admin/storage': typeof AppAdminStorageRoute
+  '/_app/admin/': typeof AppAdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/admin'
+    | '/change-password'
+    | '/dashboard'
+    | '/history'
+    | '/profile'
+    | '/activity/$date'
+    | '/admin/monitor'
+    | '/admin/projects'
+    | '/admin/statistics'
+    | '/admin/storage'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/change-password'
+    | '/dashboard'
+    | '/history'
+    | '/profile'
+    | '/activity/$date'
+    | '/admin/monitor'
+    | '/admin/projects'
+    | '/admin/statistics'
+    | '/admin/storage'
+    | '/admin'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/login'
+    | '/_app/admin'
+    | '/_app/change-password'
+    | '/_app/dashboard'
+    | '/_app/history'
+    | '/_app/profile'
+    | '/_app/activity/$date'
+    | '/_app/admin/monitor'
+    | '/_app/admin/projects'
+    | '/_app/admin/statistics'
+    | '/_app/admin/storage'
+    | '/_app/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +217,130 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/profile': {
+      id: '/_app/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/history': {
+      id: '/_app/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof AppHistoryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/change-password': {
+      id: '/_app/change-password'
+      path: '/change-password'
+      fullPath: '/change-password'
+      preLoaderRoute: typeof AppChangePasswordRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin': {
+      id: '/_app/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AppAdminRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/': {
+      id: '/_app/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AppAdminIndexRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
+    '/_app/admin/storage': {
+      id: '/_app/admin/storage'
+      path: '/storage'
+      fullPath: '/admin/storage'
+      preLoaderRoute: typeof AppAdminStorageRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
+    '/_app/admin/statistics': {
+      id: '/_app/admin/statistics'
+      path: '/statistics'
+      fullPath: '/admin/statistics'
+      preLoaderRoute: typeof AppAdminStatisticsRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
+    '/_app/admin/projects': {
+      id: '/_app/admin/projects'
+      path: '/projects'
+      fullPath: '/admin/projects'
+      preLoaderRoute: typeof AppAdminProjectsRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
+    '/_app/admin/monitor': {
+      id: '/_app/admin/monitor'
+      path: '/monitor'
+      fullPath: '/admin/monitor'
+      preLoaderRoute: typeof AppAdminMonitorRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
+    '/_app/activity/$date': {
+      id: '/_app/activity/$date'
+      path: '/activity/$date'
+      fullPath: '/activity/$date'
+      preLoaderRoute: typeof AppActivityDateRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppAdminRouteChildren {
+  AppAdminMonitorRoute: typeof AppAdminMonitorRoute
+  AppAdminProjectsRoute: typeof AppAdminProjectsRoute
+  AppAdminStatisticsRoute: typeof AppAdminStatisticsRoute
+  AppAdminStorageRoute: typeof AppAdminStorageRoute
+  AppAdminIndexRoute: typeof AppAdminIndexRoute
+}
+
+const AppAdminRouteChildren: AppAdminRouteChildren = {
+  AppAdminMonitorRoute: AppAdminMonitorRoute,
+  AppAdminProjectsRoute: AppAdminProjectsRoute,
+  AppAdminStatisticsRoute: AppAdminStatisticsRoute,
+  AppAdminStorageRoute: AppAdminStorageRoute,
+  AppAdminIndexRoute: AppAdminIndexRoute,
+}
+
+const AppAdminRouteWithChildren = AppAdminRoute._addFileChildren(
+  AppAdminRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppAdminRoute: typeof AppAdminRouteWithChildren
+  AppChangePasswordRoute: typeof AppChangePasswordRoute
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppHistoryRoute: typeof AppHistoryRoute
+  AppProfileRoute: typeof AppProfileRoute
+  AppActivityDateRoute: typeof AppActivityDateRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAdminRoute: AppAdminRouteWithChildren,
+  AppChangePasswordRoute: AppChangePasswordRoute,
+  AppDashboardRoute: AppDashboardRoute,
+  AppHistoryRoute: AppHistoryRoute,
+  AppProfileRoute: AppProfileRoute,
+  AppActivityDateRoute: AppActivityDateRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
