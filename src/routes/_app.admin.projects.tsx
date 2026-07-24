@@ -71,7 +71,22 @@ function AdminProjectsPage() {
             >
               <div className="space-y-1.5">
                 <Label>Name</Label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} required />
+                <Input 
+                  value={name} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setName(val);
+                    const words = val.trim().split(/\s+/).filter(Boolean);
+                    let newKey = "";
+                    if (words.length > 1) {
+                      newKey = words.map(w => w[0]).join('').substring(0, 4).toUpperCase();
+                    } else {
+                      newKey = val.replace(/[^a-zA-Z0-9]/g, '').substring(0, 3).toUpperCase();
+                    }
+                    setKey(newKey);
+                  }} 
+                  required 
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Key</Label>

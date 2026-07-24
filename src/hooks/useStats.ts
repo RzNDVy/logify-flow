@@ -17,17 +17,17 @@ export function useAdminStats() {
   return useQuery({ queryKey: keys.statsAdmin(), queryFn: () => stats.forAdmin() });
 }
 
-export function useActivityTrend(range: DateRange) {
+export function useActivityTrend(range: DateRange, userId?: string) {
   const { stats } = useRepositories();
   return useQuery({
-    queryKey: ["stats", "trend", range],
-    queryFn: () => stats.activityTrend(range),
+    queryKey: ["stats", "trend", range, userId],
+    queryFn: () => stats.activityTrend(range, userId),
   });
 }
 
-export function useProjectStats() {
+export function useProjectStats(userId?: string) {
   const { stats } = useRepositories();
-  return useQuery({ queryKey: ["stats", "byProject"], queryFn: () => stats.byProject() });
+  return useQuery({ queryKey: ["stats", "byProject", userId], queryFn: () => stats.byProject(userId) });
 }
 
 export function useTopUsers(limit = 5) {

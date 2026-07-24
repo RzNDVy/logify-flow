@@ -127,8 +127,8 @@ export interface ActivityRepo {
 export interface StatsRepo {
   forUser(userId: string): Promise<UserStats>;
   forAdmin(): Promise<AdminStats>;
-  activityTrend(range: DateRange): Promise<Array<{ date: string; count: number }>>;
-  byProject(): Promise<Array<{ projectId: string; count: number }>>;
+  activityTrend(range: DateRange, userId?: string): Promise<Array<{ date: string; count: number }>>;
+  byProject(userId?: string): Promise<Array<{ projectId: string; count: number }>>;
   topUsers(limit: number): Promise<Array<{ userId: string; count: number }>>;
 }
 

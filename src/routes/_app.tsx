@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppShell } from "@/components/layout/AppShell";
 import { Loader2 } from "lucide-react";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/_app")({
 function AppLayout() {
   const { status } = useAuth();
   const navigate = useNavigate();
+  useRealtimeSync();
 
   useEffect(() => {
     if (status === "unauthenticated") {

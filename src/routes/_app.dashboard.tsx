@@ -45,12 +45,12 @@ function DashboardPage() {
   const firstName = user!.name.split(" ")[0];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
+    <div className="mx-auto max-w-7xl space-y-8 p-4 sm:p-8 lg:p-12">
       <PageHeader
         title={`Good to see you, ${firstName}`}
         description={humanDate(new Date())}
         actions={
-          <Button asChild>
+          <Button asChild className="rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/30">
             <Link to={`/activity/${todayISO()}`}>
               <CalendarDays className="mr-2 h-4 w-4" /> Log today
             </Link>
@@ -58,7 +58,7 @@ function DashboardPage() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-6">
         <StatCard label="Today" value={stats?.today ?? "—"} icon={CalendarDays} accent="primary" />
         <StatCard label="This week" value={stats?.thisWeek ?? "—"} icon={TrendingUp} accent="primary" />
         <StatCard label="This month" value={stats?.thisMonth ?? "—"} icon={Layers} />

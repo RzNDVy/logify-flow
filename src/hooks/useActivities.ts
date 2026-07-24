@@ -57,8 +57,7 @@ export function useHeatmap(userId: string, range: DateRange) {
 
 function invalidateActivity(qc: ReturnType<typeof useQueryClient>, userId: string) {
   qc.invalidateQueries({ queryKey: ["activities"] });
-  qc.invalidateQueries({ queryKey: keys.statsUser(userId) });
-  qc.invalidateQueries({ queryKey: keys.statsAdmin() });
+  qc.invalidateQueries({ queryKey: ["stats"] });
   qc.invalidateQueries({ queryKey: keys.storage() });
 }
 

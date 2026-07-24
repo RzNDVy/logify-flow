@@ -5,7 +5,9 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useActivitiesByDate, useDeleteActivity } from "@/hooks/useActivities";
 import { useProjects } from "@/hooks/useProjects";
-import { ChevronLeft, ChevronRight, Plus, Lock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Lock, CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { humanDate, todayISO, format, addDays, subDays, fromISO, isValidISODate } from "@/lib/date";
 import { canCreateForDate, lockReason, isFuture } from "@/lib/rules/activity-rules";
 import { ActivityCard } from "@/features/activity/ActivityCard";
@@ -62,6 +64,7 @@ function ActivityDatePage() {
   }
 
   const editing = activities.find((a) => a.id === editingId) ?? null;
+  const [calOpen, setCalOpen] = useState(false);
 
   return (
     <div className="mx-auto max-w-4xl space-y-5 p-4 sm:p-6 lg:p-8">
@@ -78,6 +81,28 @@ function ActivityDatePage() {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
+            
+            <Popover open={calOpen} onOpenChange={setCalOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" aria-label="Select date">
+                  <CalendarIcon className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center">
+                <Calendar
+                  mode="single"
+                  selected={fromISO(date)}
+                  onSelect={(d) => {
+                    if (d) {
+                      goto(format(d, "yyyy-MM-dd"));
+                      setCalOpen(false);
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+
             <Button variant="outline" size="sm" onClick={() => goto(todayISO())}>
               Today
             </Button>

@@ -142,6 +142,14 @@ export function AddActivityDrawer({
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
+                onClick={(e) => {
+                  try {
+                    // Modern browsers support showPicker() on time inputs
+                    (e.target as HTMLInputElement).showPicker();
+                  } catch (err) {
+                    // Fallback for older browsers
+                  }
+                }}
                 required
               />
             </div>
