@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useUsers, useUpdateUser, useDeleteUser, useCreateUser } from "@/hooks/useUsers";
+import { useUsers, useUpdateUser, useDeleteUser, useCreateUser, useUpdateUserPassword } from "@/hooks/useUsers";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,10 +19,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Plus } from "lucide-react";
+import { MoreHorizontal, Plus, KeyRound, Eye, EyeOff } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -35,7 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Role } from "@/types/domain";
+import type { Role, User } from "@/types/domain";
 
 export const Route = createFileRoute("/_app/admin/")({
   head: () => ({
@@ -55,7 +56,9 @@ function AdminUsersPage() {
   const update = useUpdateUser();
   const del = useDeleteUser();
   const create = useCreateUser();
+  const updatePassword = useUpdateUserPassword();
   const [open, setOpen] = useState(false);
+  const [passwordUser, setPasswordUser] = useState<User | null>(null);
 
   return (
     <div className="space-y-4">
@@ -132,6 +135,9 @@ function AdminUsersPage() {
                       >
                         Make {u.role === "admin" ? "user" : "admin"}
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setPasswordUser(u)}>
+                        <KeyRound className="mr-2 h-4 w-4" /> Change password
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive"
                         onClick={() => del.mutate(u.id)}
@@ -146,6 +152,15 @@ function AdminUsersPage() {
           </TableBody>
         </Table>
       </Card>
+      {passwordUser && (
+        <EditPasswordDialog
+          user={passwordUser}
+          onDone={() => setPasswordUser(null)}
+          onUpdate={async (password) => {
+            await updatePassword.mutateAsync({ userId: passwordUser.id, password });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -208,5 +223,94 @@ function NewUserDialog({
         </Button>
       </form>
     </DialogContent>
+  );
+}
+
+function EditPasswordDialog({
+  user,
+  onDone,
+  onUpdate,
+}: {
+  user: User;
+  onDone: () => void;
+  onUpdate: (password: string) => Promise<unknown>;
+}) {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (password.length < 6) {
+      setError("Password minimal 6 karakter.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Konfirmasi password tidak cocok.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await onUpdate(password);
+      onDone();
+    } catch {
+      // Toast notification is already handled in hook
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={(open) => { if (!open) onDone(); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Change user password</DialogTitle>
+          <DialogDescription>
+            Ubah password untuk <span className="font-medium text-foreground">{user.name}</span> ({user.email}).
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <div className="text-sm font-medium text-destructive">{error}</div>}
+          <div className="space-y-1.5">
+            <Label>New Password</Label>
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Masukkan password baru"
+                required
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Confirm New Password</Label>
+            <Input
+              type={showPassword ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Ulangi password baru"
+              required
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? "Saving..." : "Save password"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

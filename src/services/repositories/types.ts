@@ -101,6 +101,7 @@ export interface UserRepo {
   byId(id: string): Promise<User | null>;
   create(input: NewUserDTO): Promise<User>;
   update(id: string, patch: UpdateUserDTO): Promise<User>;
+  updatePassword(userId: string, newPassword: string): Promise<void>;
   setStatus(id: string, status: UserStatus): Promise<User>;
   remove(id: string): Promise<void>;
 }

@@ -167,3 +167,19 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECU
 CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON projects FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 CREATE TRIGGER update_modules_updated_at BEFORE UPDATE ON modules FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 CREATE TRIGGER update_activities_updated_at BEFORE UPDATE ON activities FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+
+-- 8. Admin RPC for updating user passwords
+CREATE OR REPLACE FUNCTION admin_update_user_password(target_user_id UUID, new_password TEXT)
+RETURNS VOID AS $$
+BEGIN
+  IF NOT is_admin() THEN
+    RAISE EXCEPTION 'Only admins can update user passwords';
+  END IF;
+
+  UPDATE auth.users
+  SET encrypted_password = crypt(new_password, gen_salt('bf'))
+  WHERE id = (
+    SELECT auth_id FROM users WHERE id = target_user_id OR auth_id = target_user_id
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

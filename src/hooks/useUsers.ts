@@ -39,6 +39,20 @@ export function useUpdateUser() {
   });
 }
 
+export function useUpdateUserPassword() {
+  const { users } = useRepositories();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, password }: { userId: string; password: string }) =>
+      users.updatePassword(userId, password),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["users"] });
+      toast.success("User password updated.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
 export function useDeleteUser() {
   const { users } = useRepositories();
   const qc = useQueryClient();

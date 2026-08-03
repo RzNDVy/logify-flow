@@ -18,6 +18,7 @@ export const supabaseAuthRepo: AuthRepo = {
 
     return {
       token: session.access_token,
+      issuedAt: new Date(session.created_at || Date.now()).toISOString(),
       user: {
         id: profile.id,
         name: profile.name,
@@ -27,6 +28,7 @@ export const supabaseAuthRepo: AuthRepo = {
         jobTitle: profile.position,
         department: profile.department,
         avatarUrl: profile.avatar_url,
+        createdAt: profile.created_at || new Date().toISOString(),
       },
     };
   },
@@ -49,6 +51,7 @@ export const supabaseAuthRepo: AuthRepo = {
 
     return {
       token: data.session.access_token,
+      issuedAt: new Date().toISOString(),
       user: {
         id: profile.id,
         name: profile.name,
@@ -58,6 +61,7 @@ export const supabaseAuthRepo: AuthRepo = {
         jobTitle: profile.position,
         department: profile.department,
         avatarUrl: profile.avatar_url,
+        createdAt: profile.created_at || new Date().toISOString(),
       },
     };
   },
@@ -99,6 +103,7 @@ export const supabaseAuthRepo: AuthRepo = {
         jobTitle: data.position,
         department: data.department,
         avatarUrl: data.avatar_url,
+        createdAt: data.created_at || new Date().toISOString(),
     };
   },
 };

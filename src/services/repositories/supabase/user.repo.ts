@@ -12,6 +12,7 @@ const mapUser = (row: any): User => ({
   jobTitle: row.position,
   department: row.department,
   avatarUrl: row.avatar_url,
+  createdAt: row.created_at || new Date().toISOString(),
 });
 
 export const supabaseUserRepo: UserRepo = {
@@ -113,6 +114,50 @@ export const supabaseUserRepo: UserRepo = {
     if (error) throw new Error(error.message);
     
     return mapUser(data);
+  },
+
+  async updatePassword(userId: string, newPassword: string): Promise<void> {
+    const { data: userRow, error: fetchErr } = await supabase
+      .from("users")
+      .select("auth_id")
+      .eq("id", userId)
+      .single();
+
+    if (fetchErr || !userRow?.auth_id) {
+      throw new Error("Pengguna tidak ditemukan: " + (fetchErr?.message || "auth_id tidak valid"));
+    }
+
+    const serviceRoleKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+
+    if (serviceRoleKey) {
+      const adminClient = createClient(
+        import.meta.env.VITE_SUPABASE_URL,
+        serviceRoleKey,
+        { auth: { persistSession: false, autoRefreshToken: false } }
+      );
+      const { error: adminErr } = await adminClient.auth.admin.updateUserById(
+        userRow.auth_id,
+        { password: newPassword }
+      );
+      if (adminErr) {
+        throw new Error("Gagal mengubah password: " + adminErr.message);
+      }
+      return;
+    }
+
+    const { error: rpcErr } = await supabase.rpc("admin_update_user_password", {
+      target_user_id: userId,
+      new_password: newPassword,
+    });
+
+    if (rpcErr) {
+      if (rpcErr.message.includes("Could not find the function")) {
+        throw new Error(
+          "Fungsi Supabase belum terpasang. Silakan jalankan skrip SQL 'admin_update_user_password' di Supabase SQL Editor, atau tambahkan VITE_SUPABASE_SERVICE_ROLE_KEY di .env.local."
+        );
+      }
+      throw new Error("Gagal mengubah password: " + rpcErr.message);
+    }
   },
 
   async remove(id: string): Promise<void> {
