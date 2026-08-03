@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import type { AuthRepo, Credentials, UpdateUserDTO } from "../types";
 import type { Session, User } from "@/types/domain";
+import { supabaseAuditLogRepo } from "./audit.repo";
 
 export const supabaseAuthRepo: AuthRepo = {
   async currentSession(): Promise<Session | null> {
@@ -18,7 +19,7 @@ export const supabaseAuthRepo: AuthRepo = {
 
     return {
       token: session.access_token,
-      issuedAt: new Date(session.created_at || Date.now()).toISOString(),
+      issuedAt: new Date().toISOString(),
       user: {
         id: profile.id,
         name: profile.name,
@@ -49,6 +50,17 @@ export const supabaseAuthRepo: AuthRepo = {
       
     if (profileError || !profile) throw new Error("Profile not found.");
 
+    // Record audit log for login
+    supabaseAuditLogRepo.create({
+      userId: profile.id,
+      userName: profile.name,
+      userEmail: profile.email,
+      userAvatarUrl: profile.avatar_url,
+      action: "USER_LOGIN",
+      category: "auth",
+      details: `User ${profile.name} (${profile.email}) logged into the application.`,
+    });
+
     return {
       token: data.session.access_token,
       issuedAt: new Date().toISOString(),
@@ -76,6 +88,14 @@ export const supabaseAuthRepo: AuthRepo = {
     // For now, we update the user password directly.
     const { error } = await supabase.auth.updateUser({ password: next });
     if (error) throw new Error(error.message);
+
+    // Record audit log for user changing password
+    supabaseAuditLogRepo.create({
+      userId,
+      action: "CHANGE_PASSWORD",
+      category: "auth",
+      details: `User updated their account password.`,
+    });
   },
 
   async updateProfile(userId: string, patch: UpdateUserDTO): Promise<User> {

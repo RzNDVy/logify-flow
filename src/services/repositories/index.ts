@@ -6,6 +6,7 @@ import { supabaseActivityRepo } from "./supabase/activity.repo";
 import { supabaseStatsRepo } from "./supabase/stats.repo";
 import { supabaseStorageRepo } from "./supabase/storage.repo";
 import { supabaseNotificationRepo } from "./supabase/notification.repo";
+import { supabaseAuditLogRepo } from "./supabase/audit.repo";
 
 // Factory. Swap `dummy*` for `supabase*` implementations in one place.
 export const repositories: Repositories = {
@@ -16,6 +17,7 @@ export const repositories: Repositories = {
   stats: supabaseStatsRepo,
   storage: supabaseStorageRepo,
   notifications: supabaseNotificationRepo,
+  auditLogs: supabaseAuditLogRepo,
 };
 
 export type { Repositories };

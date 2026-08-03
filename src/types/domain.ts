@@ -45,6 +45,8 @@ export interface Activity {
   id: string;
   userId: string;
   projectId: string;
+  user?: User;
+  project?: Project;
   module: string;
   description: string;
   date: string; // YYYY-MM-DD
@@ -96,4 +98,19 @@ export interface Session {
   user: User;
   token: string;
   issuedAt: string;
+}
+
+export type AuditActionCategory = "auth" | "user" | "activity" | "project" | "system";
+
+export interface AuditLog {
+  id: string;
+  userId: string;
+  userName?: string;
+  userEmail?: string;
+  userAvatarUrl?: string;
+  action: string; // e.g. USER_LOGIN, CHANGE_PASSWORD, ADMIN_EDIT_PASSWORD, CREATE_USER, etc.
+  category: AuditActionCategory;
+  details: string;
+  metadata?: Record<string, any>;
+  createdAt: string; // ISO
 }

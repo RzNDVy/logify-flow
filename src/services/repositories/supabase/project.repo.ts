@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import type { ProjectRepo, NewProjectDTO, UpdateProjectDTO } from "../types";
 import type { Project, ProjectColorToken } from "@/types/domain";
+import { supabaseAuditLogRepo } from "./audit.repo";
 
 const mapProject = (row: any): Project => ({
   id: row.id,
@@ -10,7 +11,7 @@ const mapProject = (row: any): Project => ({
   colorToken: row.color as ProjectColorToken,
   icon: row.icon,
   active: row.is_active,
-  moduleCount: 0,
+  createdAt: row.created_at || new Date().toISOString(),
 });
 
 export const supabaseProjectRepo: ProjectRepo = {
@@ -22,10 +23,7 @@ export const supabaseProjectRepo: ProjectRepo = {
       
     if (error) throw new Error(error.message);
     
-    return (data || []).map(row => ({
-      ...mapProject(row),
-      moduleCount: 0
-    }));
+    return (data || []).map(mapProject);
   },
 
   async byId(id: string): Promise<Project | null> {
@@ -40,10 +38,7 @@ export const supabaseProjectRepo: ProjectRepo = {
       throw new Error(error.message);
     }
     
-    return {
-      ...mapProject(data),
-      moduleCount: 0
-    };
+    return mapProject(data);
   },
 
   async create(input: NewProjectDTO): Promise<Project> {
@@ -60,8 +55,16 @@ export const supabaseProjectRepo: ProjectRepo = {
       .single();
       
     if (error) throw new Error(error.message);
+
+    const p = mapProject(data);
+    supabaseAuditLogRepo.create({
+      userId: "admin",
+      action: "CREATE_PROJECT",
+      category: "project",
+      details: `Created new project "${p.name}" (${p.key}).`,
+    });
     
-    return mapProject(data);
+    return p;
   },
 
   async update(id: string, patch: UpdateProjectDTO): Promise<Project> {
@@ -82,11 +85,26 @@ export const supabaseProjectRepo: ProjectRepo = {
       
     if (error) throw new Error(error.message);
     
-    return mapProject(data);
+    const p = mapProject(data);
+    supabaseAuditLogRepo.create({
+      userId: "admin",
+      action: "UPDATE_PROJECT",
+      category: "project",
+      details: `Updated project "${p.name}" (${p.key}).`,
+    });
+
+    return p;
   },
 
   async remove(id: string): Promise<void> {
     const { error } = await supabase.from("projects").delete().eq("id", id);
     if (error) throw new Error(error.message);
+
+    supabaseAuditLogRepo.create({
+      userId: "admin",
+      action: "REMOVE_PROJECT",
+      category: "project",
+      details: `Removed project ${id}.`,
+    });
   }
 };

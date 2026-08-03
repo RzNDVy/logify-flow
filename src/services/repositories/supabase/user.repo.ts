@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { createClient } from "@supabase/supabase-js";
 import type { UserRepo, NewUserDTO, UpdateUserDTO } from "../types";
 import type { User, UserStatus, Role } from "@/types/domain";
+import { supabaseAuditLogRepo } from "./audit.repo";
 
 const mapUser = (row: any): User => ({
   id: row.id,
@@ -79,7 +80,18 @@ export const supabaseUserRepo: UserRepo = {
       
     if (error) throw new Error("Gagal menyimpan profil: " + error.message);
     
-    return mapUser(data);
+    const u = mapUser(data);
+    supabaseAuditLogRepo.create({
+      userId: u.id,
+      userName: u.name,
+      userEmail: u.email,
+      userAvatarUrl: u.avatarUrl,
+      action: "CREATE_USER",
+      category: "user",
+      details: `Created new user ${u.name} (${u.email}) with role ${u.role}.`,
+    });
+
+    return u;
   },
 
   async update(id: string, patch: UpdateUserDTO): Promise<User> {
@@ -100,7 +112,18 @@ export const supabaseUserRepo: UserRepo = {
       
     if (error) throw new Error(error.message);
     
-    return mapUser(data);
+    const u = mapUser(data);
+    supabaseAuditLogRepo.create({
+      userId: u.id,
+      userName: u.name,
+      userEmail: u.email,
+      userAvatarUrl: u.avatarUrl,
+      action: "UPDATE_USER",
+      category: "user",
+      details: `Updated user profile/role for ${u.name}.`,
+    });
+
+    return u;
   },
 
   async setStatus(id: string, status: UserStatus): Promise<User> {
@@ -113,13 +136,24 @@ export const supabaseUserRepo: UserRepo = {
       
     if (error) throw new Error(error.message);
     
-    return mapUser(data);
+    const u = mapUser(data);
+    supabaseAuditLogRepo.create({
+      userId: u.id,
+      userName: u.name,
+      userEmail: u.email,
+      userAvatarUrl: u.avatarUrl,
+      action: "SET_USER_STATUS",
+      category: "user",
+      details: `Changed user status for ${u.name} to ${status}.`,
+    });
+
+    return u;
   },
 
   async updatePassword(userId: string, newPassword: string): Promise<void> {
     const { data: userRow, error: fetchErr } = await supabase
       .from("users")
-      .select("auth_id")
+      .select("auth_id, name, email, avatar_url")
       .eq("id", userId)
       .single();
 
@@ -142,6 +176,15 @@ export const supabaseUserRepo: UserRepo = {
       if (adminErr) {
         throw new Error("Gagal mengubah password: " + adminErr.message);
       }
+      supabaseAuditLogRepo.create({
+        userId,
+        userName: userRow.name,
+        userEmail: userRow.email,
+        userAvatarUrl: userRow.avatar_url,
+        action: "ADMIN_EDIT_PASSWORD",
+        category: "user",
+        details: `Admin updated password for user ${userRow.name} (${userRow.email}).`,
+      });
       return;
     }
 
@@ -158,10 +201,27 @@ export const supabaseUserRepo: UserRepo = {
       }
       throw new Error("Gagal mengubah password: " + rpcErr.message);
     }
+
+    supabaseAuditLogRepo.create({
+      userId,
+      userName: userRow.name,
+      userEmail: userRow.email,
+      userAvatarUrl: userRow.avatar_url,
+      action: "ADMIN_EDIT_PASSWORD",
+      category: "user",
+      details: `Admin updated password for user ${userRow.name} (${userRow.email}).`,
+    });
   },
 
   async remove(id: string): Promise<void> {
     const { error } = await supabase.from("users").delete().eq("id", id);
     if (error) throw new Error(error.message);
+
+    supabaseAuditLogRepo.create({
+      userId: id,
+      action: "REMOVE_USER",
+      category: "user",
+      details: `Removed user account ${id}.`,
+    });
   },
 };

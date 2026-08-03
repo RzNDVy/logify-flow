@@ -2,6 +2,8 @@ import type {
   Activity,
   ActivityImage,
   AdminStats,
+  AuditActionCategory,
+  AuditLog,
   DateRange,
   HeatmapCell,
   Paginated,
@@ -139,6 +141,19 @@ export interface StorageRepo {
   deleteArchived(): Promise<number>;
 }
 
+export interface AuditLogQuery {
+  userId?: string;
+  category?: AuditActionCategory;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface AuditLogRepo {
+  list(query?: AuditLogQuery): Promise<Paginated<AuditLog>>;
+  create(log: Omit<AuditLog, "id" | "createdAt">): Promise<AuditLog>;
+}
+
 export interface NotificationRepo {
   list(userId: string): Promise<Array<{ id: string; message: string; createdAt: string; read: boolean }>>;
   markAllRead(userId: string): Promise<void>;
@@ -152,6 +167,7 @@ export interface Repositories {
   stats: StatsRepo;
   storage: StorageRepo;
   notifications: NotificationRepo;
+  auditLogs: AuditLogRepo;
 }
 
 // Re-export image helpers as a canonical spot

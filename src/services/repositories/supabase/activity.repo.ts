@@ -4,22 +4,30 @@ import type { Activity, HeatmapCell, Paginated } from "@/types/domain";
 
 const mapActivity = (row: any): Activity => ({
   id: row.id,
-  user: {
-    id: row.users?.id || row.user_id,
-    name: row.users?.name || "Unknown",
-    email: row.users?.email || "",
-    role: row.users?.role || "user",
-    status: row.users?.status || "active",
-    avatarUrl: row.users?.avatar_url,
-  },
-  project: {
-    id: row.projects?.id || row.project_id,
-    name: row.projects?.name || "Unknown",
-    key: row.projects?.code || "",
-    colorToken: row.projects?.color || "gray",
-    icon: row.projects?.icon || "",
-    active: row.projects?.is_active,
-  },
+  userId: row.user_id,
+  projectId: row.project_id,
+  user: row.users
+    ? {
+        id: row.users.id,
+        name: row.users.name || "Unknown",
+        email: row.users.email || "",
+        role: row.users.role || "user",
+        status: row.users.status || "active",
+        avatarUrl: row.users.avatar_url,
+        createdAt: row.users.created_at || new Date().toISOString(),
+      }
+    : undefined,
+  project: row.projects
+    ? {
+        id: row.projects.id,
+        name: row.projects.name || "Unknown",
+        key: row.projects.code || "",
+        colorToken: row.projects.color || "gray",
+        icon: row.projects.icon || "",
+        active: row.projects.is_active,
+        createdAt: row.projects.created_at || new Date().toISOString(),
+      }
+    : undefined,
   module: row.module_name || "General",
   description: row.description,
   date: row.activity_date,
