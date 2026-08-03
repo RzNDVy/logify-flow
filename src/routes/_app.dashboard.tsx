@@ -55,7 +55,7 @@ function DashboardPage() {
         description={humanDate(new Date())}
         actions={
           <Button asChild className="rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/30">
-            <Link to={`/activity/${todayISO()}`}>
+            <Link to="/activity/$date" params={{ date: todayISO() }}>
               <CalendarDays className="mr-2 h-4 w-4" /> Log today
             </Link>
           </Button>

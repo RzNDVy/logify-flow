@@ -30,6 +30,7 @@ export interface NewActivityDTO {
   description: string;
   date: string;
   time: string;
+  endTime?: string;
   images: File[];
 }
 
@@ -38,6 +39,7 @@ export interface UpdateActivityDTO {
   module?: string;
   description?: string;
   time?: string;
+  endTime?: string;
   addImages?: File[];
   removeImageIds?: string[];
 }

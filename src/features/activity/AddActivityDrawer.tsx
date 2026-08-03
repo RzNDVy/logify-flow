@@ -23,6 +23,8 @@ import { TimePicker } from "@/components/common/TimePicker";
 import { Loader2, Upload, X, Camera, Save, Trash2, CheckCircle2, Plus, FolderPlus } from "lucide-react";
 import { toast } from "sonner";
 
+import { getAutoEndTime, getAutoDurationHours } from "@/lib/activity-time";
+
 const COLOR_PALETTE: ProjectColorToken[] = [
   "blue", "emerald", "violet", "amber", "rose",
   "cyan", "orange", "indigo", "teal", "pink"
@@ -60,10 +62,14 @@ export function AddActivityDrawer({
   const [module, setModule] = useState("");
   const [description, setDescription] = useState("");
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
+  const [endTime, setEndTime] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [removeIds, setRemoveIds] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
+
+  const autoEndTime = getAutoEndTime(time, description);
+  const autoDuration = getAutoDurationHours(description);
 
   // Quick Add Project Modal State
   const [newProjectOpen, setNewProjectOpen] = useState(false);
@@ -83,6 +89,7 @@ export function AddActivityDrawer({
         setModule(editing.module);
         setDescription(editing.description);
         setTime(editing.time);
+        setEndTime(editing.endTime || "");
         setDraftRestored(false);
       } else {
         // Try restoring draft from localStorage
@@ -94,17 +101,20 @@ export function AddActivityDrawer({
             setModule(parsed.module || "");
             setDescription(parsed.description || "");
             setTime(parsed.time || new Date().toTimeString().slice(0, 5));
+            setEndTime(parsed.endTime || "");
             setDraftRestored(true);
           } catch {
             setProjectId(projects[0]?.id ?? "");
             setModule("");
             setDescription("");
+            setEndTime("");
             setDraftRestored(false);
           }
         } else {
           setProjectId(projects[0]?.id ?? "");
           setModule("");
           setDescription("");
+          setEndTime("");
           setDraftRestored(false);
         }
       }
@@ -262,6 +272,7 @@ export function AddActivityDrawer({
       toast.error("Silakan lengkapi semua kolom yang wajib diisi.");
       return;
     }
+    const finalEndTime = endTime.trim() ? endTime : autoEndTime;
     if (editing) {
       await update.mutateAsync({
         id: editing.id,
@@ -270,6 +281,7 @@ export function AddActivityDrawer({
           module,
           description,
           time,
+          endTime: finalEndTime,
           addImages: files,
           removeImageIds: removeIds,
         },
@@ -281,6 +293,7 @@ export function AddActivityDrawer({
         module,
         description,
         time,
+        endTime: finalEndTime,
         date,
         images: files,
       });
@@ -351,7 +364,7 @@ export function AddActivityDrawer({
               </Select>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="col-span-2 space-y-1.5">
               <Label htmlFor="module" className="text-xs font-semibold">Modul</Label>
               <ModuleAutoComplete
                 value={module}
@@ -362,13 +375,28 @@ export function AddActivityDrawer({
               />
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="time" className="text-xs font-semibold">Waktu / Jam</Label>
-              <TimePicker
-                value={time}
-                onChange={setTime}
-                required
-              />
+            <div className="col-span-2 grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="time" className="text-xs font-semibold">Jam Mulai</Label>
+                <TimePicker
+                  value={time}
+                  onChange={setTime}
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="endTime" className="text-xs font-semibold">Jam Selesai</Label>
+                  <Badge variant="outline" className="h-4 px-1 text-[9px] font-semibold border-primary/30 bg-primary/10 text-primary">
+                    {endTime ? "Manual" : `Auto ${autoDuration}h`}
+                  </Badge>
+                </div>
+                <TimePicker
+                  value={endTime || autoEndTime}
+                  onChange={setEndTime}
+                />
+              </div>
             </div>
           </div>
 

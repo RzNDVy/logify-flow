@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Calendar as CalendarIcon, User as UserIcon, FileText, ImageIcon } from "lucide-react";
 import type { Activity, Project, User } from "@/types/domain";
 import { ImageViewer } from "@/features/activity/ImageViewer";
+import { getAutoEndTime } from "@/lib/activity-time";
 
 interface ActivityDetailModalProps {
   activity: Activity | null;
@@ -67,8 +68,8 @@ export function ActivityDetailModal({
             <span className="flex items-center gap-1 text-muted-foreground font-medium">
               <CalendarIcon className="h-3.5 w-3.5" /> {activity.date}
             </span>
-            <span className="flex items-center gap-1 text-muted-foreground font-mono">
-              <Clock className="h-3.5 w-3.5" /> {activity.time || "-"}
+            <span className="flex items-center gap-1 text-muted-foreground font-mono font-medium">
+              <Clock className="h-3.5 w-3.5 text-primary" /> {activity.time} s/d {activity.endTime || getAutoEndTime(activity.time, activity.description)}
             </span>
           </div>
 

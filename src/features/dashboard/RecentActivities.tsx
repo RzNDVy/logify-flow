@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { CalendarClock, Plus } from "lucide-react";
 import { todayISO } from "@/lib/date";
 
+import { getAutoEndTime } from "@/lib/activity-time";
+
 export function RecentActivities({
   activities,
   projects,
@@ -30,7 +32,7 @@ export function RecentActivities({
           description="Log your first activity to see it here."
           action={
             <Button asChild size="sm">
-              <Link to={`/activity/${todayISO()}`}>
+              <Link to="/activity/$date" params={{ date: todayISO() }}>
                 <Plus className="mr-1 h-4 w-4" /> Log activity
               </Link>
             </Button>
@@ -40,6 +42,7 @@ export function RecentActivities({
         <ul className="divide-y">
           {activities.map((a) => {
             const p = projects.get(a.projectId);
+            const endTimeStr = a.endTime || getAutoEndTime(a.time, a.description);
             return (
               <li key={a.id} className="flex items-center gap-3 py-3">
                 <div className="min-w-0 flex-1">
@@ -51,7 +54,7 @@ export function RecentActivities({
                 </div>
                 <div className="text-right text-xs text-muted-foreground">
                   <div>{shortDate(a.date)}</div>
-                  <div>{a.time}</div>
+                  <div className="font-mono text-[11px] font-medium text-foreground">{a.time} - {endTimeStr}</div>
                 </div>
               </li>
             );

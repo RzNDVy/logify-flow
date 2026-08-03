@@ -55,7 +55,7 @@ function ActivityDatePage() {
           description="This URL doesn't look right."
           action={
             <Button asChild>
-              <Link to={`/activity/${todayISO()}`}>Go to today</Link>
+              <Link to="/activity/$date" params={{ date: todayISO() }}>Go to today</Link>
             </Button>
           }
         />

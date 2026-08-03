@@ -23,6 +23,7 @@ import { ExportReportDialog } from "@/components/reports/ExportReportDialog";
 import { ActivityDetailModal } from "@/components/activity/ActivityDetailModal";
 import { List, Calendar as CalendarIcon, Download } from "lucide-react";
 import type { Activity } from "@/types/domain";
+import { getAutoEndTime } from "@/lib/activity-time";
 
 export const Route = createFileRoute("/_app/history")({
   head: () => ({
@@ -153,13 +154,17 @@ function HistoryPage() {
                   <Card className="divide-y">
                     {list.map((a) => {
                       const p = projectMap.get(a.projectId);
+                      const endTimeStr = a.endTime || getAutoEndTime(a.time, a.description);
                       return (
                         <div
                           key={a.id}
                           onClick={() => setSelectedActivity(a)}
                           className="flex gap-3 p-4 transition-colors cursor-pointer hover:bg-muted/40"
                         >
-                          <div className="w-14 shrink-0 text-xs text-muted-foreground">{a.time}</div>
+                          <div className="w-24 shrink-0 text-xs font-mono">
+                            <div className="font-semibold text-foreground">{a.time}</div>
+                            <div className="text-[11px] text-muted-foreground">s/d {endTimeStr}</div>
+                          </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
                               {p && <ProjectBadge project={p} />}

@@ -1,47 +1,80 @@
 import { supabase } from "@/lib/supabase";
 import type { ActivityRepo, NewActivityDTO, UpdateActivityDTO, ActivityQuery } from "../types";
-import type { Activity, HeatmapCell, Paginated } from "@/types/domain";
+import type { Activity, DateRange, HeatmapCell, Paginated } from "@/types/domain";
+import { getAutoEndTime } from "@/lib/activity-time";
 
-const mapActivity = (row: any): Activity => ({
-  id: row.id,
-  userId: row.user_id,
-  projectId: row.project_id,
-  user: row.users
-    ? {
-        id: row.users.id,
-        name: row.users.name || "Unknown",
-        email: row.users.email || "",
-        role: row.users.role || "user",
-        status: row.users.status || "active",
-        avatarUrl: row.users.avatar_url,
-        createdAt: row.users.created_at || new Date().toISOString(),
-      }
-    : undefined,
-  project: row.projects
-    ? {
-        id: row.projects.id,
-        name: row.projects.name || "Unknown",
-        key: row.projects.code || "",
-        colorToken: row.projects.color || "gray",
-        icon: row.projects.icon || "",
-        active: row.projects.is_active,
-        createdAt: row.projects.created_at || new Date().toISOString(),
-      }
-    : undefined,
-  module: row.module_name || "General",
-  description: row.description,
-  date: row.activity_date,
-  time: row.activity_time,
-  images: (row.activity_images || []).map((img: any) => ({
-    id: img.id,
-    url: img.public_url,
-    fileSize: img.file_size,
-    type: img.mime_type,
-    name: img.file_name,
-  })),
-  createdAt: row.created_at,
-  updatedAt: row.updated_at,
-});
+const LOCAL_END_TIMES_KEY = "wams_activity_end_times";
+
+function getLocalEndTime(id: string): string | undefined {
+  try {
+    const stored = typeof window !== "undefined" ? localStorage.getItem(LOCAL_END_TIMES_KEY) : null;
+    if (!stored) return undefined;
+    const parsed = JSON.parse(stored);
+    return parsed[id];
+  } catch {
+    return undefined;
+  }
+}
+
+function setLocalEndTime(id: string, endTime: string) {
+  try {
+    if (typeof window === "undefined") return;
+    const stored = localStorage.getItem(LOCAL_END_TIMES_KEY);
+    const parsed = stored ? JSON.parse(stored) : {};
+    parsed[id] = endTime;
+    localStorage.setItem(LOCAL_END_TIMES_KEY, JSON.stringify(parsed));
+  } catch {}
+}
+
+const mapActivity = (row: any): Activity => {
+  const startTime = row.activity_time || "00:00";
+  const desc = row.description || "";
+  const localEndTime = getLocalEndTime(row.id);
+  const rawEndTime = row.end_time || row.activity_end_time || row.endTime || localEndTime;
+  const endTime = rawEndTime ? String(rawEndTime).slice(0, 5) : getAutoEndTime(startTime, desc);
+
+  return {
+    id: row.id,
+    userId: row.user_id,
+    projectId: row.project_id,
+    user: row.users
+      ? {
+          id: row.users.id,
+          name: row.users.name || "Unknown",
+          email: row.users.email || "",
+          role: row.users.role || "user",
+          status: row.users.status || "active",
+          avatarUrl: row.users.avatar_url,
+          createdAt: row.users.created_at || new Date().toISOString(),
+        }
+      : undefined,
+    project: row.projects
+      ? {
+          id: row.projects.id,
+          name: row.projects.name || "Unknown",
+          key: row.projects.code || "",
+          colorToken: row.projects.color || "gray",
+          icon: row.projects.icon || "",
+          active: row.projects.is_active,
+          createdAt: row.projects.created_at || new Date().toISOString(),
+        }
+      : undefined,
+    module: row.module_name || "General",
+    description: row.description,
+    date: row.activity_date,
+    time: startTime,
+    endTime,
+    images: (row.activity_images || []).map((img: any) => ({
+      id: img.id,
+      url: img.public_url,
+      fileSize: img.file_size,
+      type: img.mime_type,
+      name: img.file_name,
+    })),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+};
 
 export const supabaseActivityRepo: ActivityRepo = {
   async list(query: ActivityQuery): Promise<Paginated<Activity>> {
@@ -144,21 +177,42 @@ export const supabaseActivityRepo: ActivityRepo = {
     // For simplicity in the repo layer without access to window/File APIs reliably or 
     // requiring complex multiparts, we'll assume the caller uploads them or we do it here.
 
-    const { data: act, error: actError } = await supabase
+    const insertPayload: any = {
+      user_id: input.userId,
+      project_id: input.projectId,
+      description: input.description,
+      activity_date: input.date,
+      activity_time: input.time,
+      title: "Activity",
+      module_name: input.module
+    };
+    if (input.endTime) {
+      insertPayload.end_time = input.endTime;
+    }
+
+    let { data: act, error: actError } = await supabase
       .from("activities")
-      .insert({
-        user_id: input.userId,
-        project_id: input.projectId,
-        description: input.description,
-        activity_date: input.date,
-        activity_time: input.time,
-        title: "Activity", // Title is required in schema, defaulting
-        module_name: input.module
-      })
+      .insert(insertPayload)
       .select()
       .single();
 
+    if (actError && (actError.message?.includes("end_time") || actError.code === "PGRST204" || actError.code === "42703")) {
+      // Database schema does not have 'end_time' column yet, retry insert without end_time
+      delete insertPayload.end_time;
+      const retry = await supabase
+        .from("activities")
+        .insert(insertPayload)
+        .select()
+        .single();
+      act = retry.data;
+      actError = retry.error;
+    }
+
     if (actError) throw new Error(actError.message);
+
+    if (act && input.endTime) {
+      setLocalEndTime(act.id, input.endTime);
+    }
 
     if (input.images && input.images.length > 0) {
       for (const file of input.images) {
@@ -198,13 +252,28 @@ export const supabaseActivityRepo: ActivityRepo = {
     if (patch.module !== undefined) updateData.module_name = patch.module;
     if (patch.description !== undefined) updateData.description = patch.description;
     if (patch.time !== undefined) updateData.activity_time = patch.time;
+    if (patch.endTime !== undefined) updateData.end_time = patch.endTime;
 
-    const { error } = await supabase
+    let { error } = await supabase
       .from("activities")
       .update(updateData)
       .eq("id", id);
 
+    if (error && (error.message?.includes("end_time") || error.code === "PGRST204" || error.code === "42703")) {
+      // Database schema does not have 'end_time' column yet, retry update without end_time
+      delete updateData.end_time;
+      const retry = await supabase
+        .from("activities")
+        .update(updateData)
+        .eq("id", id);
+      error = retry.error;
+    }
+
     if (error) throw new Error(error.message);
+
+    if (patch.endTime) {
+      setLocalEndTime(id, patch.endTime);
+    }
 
     if (patch.removeImageIds && patch.removeImageIds.length > 0) {
       // Fetch paths to delete from storage

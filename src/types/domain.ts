@@ -61,6 +61,7 @@ export interface Activity {
   description: string;
   date: string; // YYYY-MM-DD
   time: string; // HH:mm
+  endTime?: string; // HH:mm (optional end time)
   images: ActivityImage[];
   createdAt: string;
   updatedAt: string;
@@ -78,6 +79,7 @@ export interface UserStats {
   thisWeek: number;
   today: number;
   streak: number;
+  longestStreak?: number;
   activeProjects: number;
 }
 
@@ -89,6 +91,7 @@ export interface AdminStats {
   activitiesThisWeek: number;
   activitiesThisMonth: number;
   totalProjects: number;
+  totalImages?: number;
   storageUsedBytes: number;
 }
 

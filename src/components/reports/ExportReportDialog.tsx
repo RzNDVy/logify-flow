@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileSpreadsheet, Printer, Download, Calendar as CalendarIcon, Filter } from "lucide-react";
 import type { Activity, Project, User } from "@/types/domain";
+import { getAutoEndTime } from "@/lib/activity-time";
 import { toast } from "sonner";
 
 interface ExportReportDialogProps {
@@ -63,14 +64,16 @@ export function ExportReportDialog({
       return toast.error("Tidak ada data aktivitas pada periode yang dipilih.");
     }
 
-    const headers = ["No", "Tanggal", "Jam", "Nama Pengguna", "Email", "Proyek", "Modul", "Deskripsi"];
+    const headers = ["No", "Tanggal", "Jam Mulai", "Jam Selesai", "Nama Pengguna", "Email", "Proyek", "Modul", "Deskripsi"];
     const rows = filteredActivities.map((a, idx) => {
       const u = um.get(a.userId) || a.user;
       const p = pm.get(a.projectId) || a.project;
+      const endTimeStr = a.endTime || getAutoEndTime(a.time, a.description);
       return [
         idx + 1,
         a.date,
         a.time || "-",
+        endTimeStr || "-",
         `"${(u?.name || "Pengguna").replace(/"/g, '""')}"`,
         `"${(u?.email || "").replace(/"/g, '""')}"`,
         `"${(p?.name || "Proyek").replace(/"/g, '""')}"`,
@@ -125,11 +128,12 @@ export function ExportReportDialog({
       .map((a, idx) => {
         const u = um.get(a.userId) || a.user;
         const p = pm.get(a.projectId) || a.project;
+        const endTimeStr = a.endTime || getAutoEndTime(a.time, a.description);
         return `
           <tr>
             <td style="text-align: center;">${idx + 1}</td>
             <td>${a.date}</td>
-            <td>${a.time || "-"}</td>
+            <td><strong>${a.time || "-"}</strong><br/><small style="color: #475569;">s/d ${endTimeStr}</small></td>
             <td><strong>${u?.name || "Pengguna"}</strong><br/><small style="color: #666;">${u?.email || ""}</small></td>
             <td><span class="badge">${p?.name || "Proyek"}</span></td>
             <td>${a.module}</td>

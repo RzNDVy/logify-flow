@@ -57,6 +57,7 @@ CREATE TABLE activities (
   description TEXT,
   activity_date DATE NOT NULL,
   activity_time TIME NOT NULL,
+  end_time TIME,
   status activity_status DEFAULT 'published',
   created_by UUID REFERENCES users(id),
   updated_by UUID REFERENCES users(id),
