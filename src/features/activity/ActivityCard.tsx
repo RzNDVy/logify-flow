@@ -122,6 +122,11 @@ export function ActivityCard({
           index={viewerIndex}
           onIndexChange={setViewerIndex}
           onClose={() => setViewerIndex(null)}
+          userName={activity.user?.name}
+          projectName={project?.name || activity.project?.name}
+          moduleName={activity.module}
+          activityDate={activity.date}
+          activityTime={activity.time}
         />
       )}
     </Card>

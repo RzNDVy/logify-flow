@@ -17,6 +17,7 @@ import type { Activity, Project, ProjectColorToken } from "@/types/domain";
 import { useCreateActivity, useUpdateActivity, useModules } from "@/hooks/useActivities";
 import { useCreateProject } from "@/hooks/useProjects";
 import { validateImageBatch, MAX_IMAGES_PER_ACTIVITY, formatBytes } from "@/lib/rules/image-rules";
+import { applyWatermark } from "@/lib/watermark";
 import { ModuleAutoComplete } from "@/components/common/ModuleAutoComplete";
 import { TimePicker } from "@/components/common/TimePicker";
 import { Loader2, Upload, X, Camera, Save, Trash2, CheckCircle2, Plus, FolderPlus } from "lucide-react";
@@ -121,11 +122,45 @@ export function AddActivityDrawer({
     }
   }, [open, editing, projectId, module, description, time, draftKey]);
 
+  // Helper to validate and automatically stamp authentic watermarks on uploaded photos
+  async function processAndAddFiles(incomingFiles: File[]) {
+    if (incomingFiles.length === 0) return;
+
+    const existing = (editing?.images.length ?? 0) - removeIds.length + files.length;
+    const batch = validateImageBatch(existing, incomingFiles);
+    if (batch.rejected.length) {
+      toast.error(batch.rejected[0].reason);
+    }
+
+    if (batch.accepted.length > 0) {
+      const toastId = toast.loading("Membubuhi cap air / watermark otentik...");
+      let uploadTimestamp = new Date();
+      if (date) {
+        const timeStr = time || "00:00";
+        const parsed = new Date(`${date}T${timeStr}:00`);
+        if (!isNaN(parsed.getTime())) {
+          uploadTimestamp = parsed;
+        }
+      }
+
+      try {
+        const watermarkedFiles = await Promise.all(
+          batch.accepted.map((f) => applyWatermark(f, uploadTimestamp))
+        );
+        setFiles((prev) => [...prev, ...watermarkedFiles]);
+        toast.success(`Berhasil menambahkan ${watermarkedFiles.length} foto dengan cap air tanggal & jam otentik!`, { id: toastId });
+      } catch (err) {
+        setFiles((prev) => [...prev, ...batch.accepted]);
+        toast.success(`Foto berhasil ditambahkan!`, { id: toastId });
+      }
+    }
+  }
+
   // Handle Paste Event from Clipboard (Ctrl + V / Win + Shift + S)
   useEffect(() => {
     if (!open) return;
 
-    const handlePaste = (e: ClipboardEvent) => {
+    const handlePaste = async (e: ClipboardEvent) => {
       const clipboardItems = e.clipboardData?.items;
       if (!clipboardItems) return;
 
@@ -145,17 +180,8 @@ export function AddActivityDrawer({
       }
 
       if (imageFiles.length > 0) {
-        // Prevent default paste when image files are detected
         e.preventDefault();
-        const existing = (editing?.images.length ?? 0) - removeIds.length + files.length;
-        const batch = validateImageBatch(existing, imageFiles);
-        if (batch.rejected.length) {
-          toast.error(batch.rejected[0].reason);
-        }
-        if (batch.accepted.length > 0) {
-          setFiles((f) => [...f, ...batch.accepted]);
-          toast.success(`Berhasil menempelkan ${batch.accepted.length} foto dari Clipboard (Win + Shift + S / Ctrl + V)!`);
-        }
+        await processAndAddFiles(imageFiles);
       }
     };
 
@@ -205,10 +231,7 @@ export function AddActivityDrawer({
 
   function onPick(list: FileList | null) {
     if (!list) return;
-    const existing = (editing?.images.length ?? 0) - removeIds.length + files.length;
-    const batch = validateImageBatch(existing, Array.from(list));
-    if (batch.rejected.length) toast.error(batch.rejected[0].reason);
-    setFiles((f) => [...f, ...batch.accepted]);
+    processAndAddFiles(Array.from(list));
   }
 
   // Drag & Drop handlers
@@ -229,7 +252,7 @@ export function AddActivityDrawer({
     e.stopPropagation();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      onPick(e.dataTransfer.files);
+      processAndAddFiles(Array.from(e.dataTransfer.files));
     }
   };
 

@@ -79,16 +79,23 @@ export function ExportReportDialog({
       ];
     });
 
+    const cleanUserName = (targetUserObj?.name || (effectiveUserId === "all" ? "semuapengguna" : currentUser?.name || "user"))
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "") || "user";
+    const cleanMonthYear = `${monthName.trim().toLowerCase().replace(/[^a-z0-9]/g, "")}${selectedYear}`;
+    const reportFileName = `${cleanUserName}-${cleanMonthYear}-report`;
+
     const csvContent = "\uFEFF" + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `Laporan_Aktivitas_${monthName}_${selectedYear}.csv`;
+    link.download = `${reportFileName}.csv`;
     link.click();
     URL.revokeObjectURL(url);
 
-    toast.success(`Laporan Excel/CSV ${monthName} ${selectedYear} berhasil diunduh!`);
+    toast.success(`Laporan Excel/CSV ${reportFileName}.csv berhasil diunduh!`);
   };
 
   // Export / Print PDF
@@ -101,6 +108,13 @@ export function ExportReportDialog({
     if (!printWindow) {
       return toast.error("Gagal membuka jendela cetak. Izinkan popup di browser Anda.");
     }
+
+    const cleanUserName = (targetUserObj?.name || (effectiveUserId === "all" ? "semuapengguna" : currentUser?.name || "user"))
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "") || "user";
+    const cleanMonthYear = `${monthName.trim().toLowerCase().replace(/[^a-z0-9]/g, "")}${selectedYear}`;
+    const pdfFileName = `${cleanUserName}-${cleanMonthYear}-report`;
 
     const reportTitle = `LAPORAN AKTIVITAS KERJA (WAMS)`;
     const periodStr = `${monthName} ${selectedYear}`;
@@ -129,7 +143,7 @@ export function ExportReportDialog({
       <!DOCTYPE html>
       <html>
       <head>
-        <title>${reportTitle} - ${periodStr}</title>
+        <title>${pdfFileName}</title>
         <style>
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; color: #1e293b; font-size: 13px; }
           .header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #0284c7; padding-bottom: 15px; }

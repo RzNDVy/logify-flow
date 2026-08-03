@@ -112,6 +112,11 @@ export function ActivityDetailModal({
           index={viewerIndex}
           onIndexChange={setViewerIndex}
           onClose={() => setViewerIndex(null)}
+          userName={targetUser?.name}
+          projectName={targetProject?.name}
+          moduleName={activity.module}
+          activityDate={activity.date}
+          activityTime={activity.time}
         />
       )}
     </Dialog>
