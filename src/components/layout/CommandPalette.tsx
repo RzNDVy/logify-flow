@@ -11,7 +11,6 @@ import { useCommandPalette } from "@/contexts/CommandPaletteContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNavigate } from "@tanstack/react-router";
-import { useProjects } from "@/hooks/useProjects";
 import { todayISO } from "@/lib/date";
 import {
   LayoutDashboard,
@@ -35,7 +34,6 @@ export function CommandPalette() {
   const { hasRole } = useAuth();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
-  const { data: projects = [] } = useProjects();
 
   const go = (to: string) => {
     setOpen(false);
@@ -44,7 +42,7 @@ export function CommandPalette() {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Cari aktivitas, proyek, atau navigasi cepat (Ctrl + K)..." />
+      <CommandInput placeholder="Ketik perintah atau cari navigasi (Ctrl + K)..." />
       <CommandList>
         <CommandEmpty>Tidak ada hasil yang ditemukan.</CommandEmpty>
         
@@ -110,24 +108,6 @@ export function CommandPalette() {
               <CommandItem onSelect={() => go("/admin/storage")}>
                 <HardDrive className="mr-2 h-4 w-4" /> Kelola Penyimpanan
               </CommandItem>
-            </CommandGroup>
-          </>
-        )}
-
-        {/* Projects List */}
-        {projects.length > 0 && (
-          <>
-            <CommandSeparator />
-            <CommandGroup heading="Proyek Terdaftar">
-              {projects.map((p) => (
-                <CommandItem key={p.id} onSelect={() => go("/history")}>
-                  <span
-                    className="mr-2 h-2.5 w-2.5 rounded-full"
-                    style={{ backgroundColor: `var(--project-${p.colorToken}, #0284c7)` }}
-                  />
-                  {p.name}
-                </CommandItem>
-              ))}
             </CommandGroup>
           </>
         )}
