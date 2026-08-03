@@ -5,7 +5,17 @@ export type ProjectColorToken =
   | "eproc"
   | "website"
   | "internal"
-  | "mobile";
+  | "mobile"
+  | "blue"
+  | "emerald"
+  | "violet"
+  | "amber"
+  | "rose"
+  | "cyan"
+  | "indigo"
+  | "teal"
+  | "orange"
+  | "pink";
 
 export interface User {
   id: string;

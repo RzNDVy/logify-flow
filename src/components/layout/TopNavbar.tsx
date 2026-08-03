@@ -38,15 +38,15 @@ export function TopNavbar() {
         variant="outline"
         size="sm"
         onClick={() => setOpen(true)}
-        className="hidden sm:inline-flex items-center gap-2 text-muted-foreground w-64 justify-between"
+        className="hidden sm:inline-flex items-center gap-2 text-muted-foreground w-72 justify-between rounded-lg border bg-muted/40 hover:bg-muted/70 hover:border-primary/50 transition-all shadow-2xs"
         aria-label="Open command palette"
       >
-        <span className="flex items-center gap-2">
-          <Search className="h-4 w-4" />
-          Search or jump to…
+        <span className="flex items-center gap-2 text-xs">
+          <Search className="h-3.5 w-3.5 text-primary" />
+          <span>Cari atau perintah...</span>
         </span>
-        <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-          ⌘K
+        <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-background px-1.5 font-mono text-[10px] font-bold text-primary shadow-2xs">
+          Ctrl K
         </kbd>
       </Button>
       <Button

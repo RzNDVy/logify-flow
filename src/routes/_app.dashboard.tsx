@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCommandPalette } from "@/contexts/CommandPaletteContext";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { useUserStats } from "@/hooks/useStats";
@@ -13,6 +14,8 @@ import {
   FolderKanban,
   Layers,
   TrendingUp,
+  Search,
+  Sparkles,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Heatmap } from "@/features/dashboard/Heatmap";
@@ -33,6 +36,7 @@ export const Route = createFileRoute("/_app/dashboard")({
 
 function DashboardPage() {
   const { user } = useAuth();
+  const { setOpen } = useCommandPalette();
   const userId = user!.id;
   const { data: stats } = useUserStats(userId);
   const { data: recent = [] } = useRecentActivities(userId, 5);
@@ -45,7 +49,7 @@ function DashboardPage() {
   const firstName = user!.name.split(" ")[0];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 p-4 sm:p-8 lg:p-12">
+    <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-8 lg:p-12">
       <PageHeader
         title={`Good to see you, ${firstName}`}
         description={humanDate(new Date())}
@@ -65,6 +69,26 @@ function DashboardPage() {
         <StatCard label="Total" value={stats?.totalActivities ?? "—"} icon={Activity} />
         <StatCard label="Streak" value={`${stats?.streak ?? 0}d`} icon={Flame} accent="warning" />
         <StatCard label="Projects" value={stats?.activeProjects ?? "—"} icon={FolderKanban} accent="success" />
+      </div>
+
+      {/* Command Palette Visual Hint Banner */}
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-primary/20 bg-primary/5 p-4 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-mono font-bold text-xs shadow-sm">
+            Ctrl K
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              Pencarian Cepat & Navigasi Instant <kbd className="font-mono text-[11px] bg-background px-1.5 py-0.5 rounded border text-primary">Ctrl + K</kbd>
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Tekan kombinasi tombol <strong className="text-foreground">Ctrl + K</strong> (atau <strong className="text-foreground">⌘K</strong>) kapan saja untuk mencari aktivitas, proyek, atau berpindah halaman secara instan.
+            </p>
+          </div>
+        </div>
+        <Button size="sm" variant="outline" onClick={() => setOpen(true)} className="gap-2 text-xs font-semibold shadow-xs">
+          <Search className="h-3.5 w-3.5 text-primary" /> Buka Command Palette
+        </Button>
       </div>
 
       <Card className="p-5">

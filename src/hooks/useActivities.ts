@@ -55,8 +55,24 @@ export function useHeatmap(userId: string, range: DateRange) {
   });
 }
 
+export function useModules(projectId?: string) {
+  const { activities } = useRepositories();
+  return useQuery({
+    queryKey: ["modules", projectId],
+    queryFn: async () => {
+      const res = await activities.list({ projectId: projectId || undefined, pageSize: 500 });
+      const uniqueNames = Array.from(
+        new Set(res.data.map((a) => a.module).filter((m): m is string => Boolean(m && m.trim())))
+      );
+      return uniqueNames.sort();
+    },
+    staleTime: 30_000,
+  });
+}
+
 function invalidateActivity(qc: ReturnType<typeof useQueryClient>, userId: string) {
   qc.invalidateQueries({ queryKey: ["activities"] });
+  qc.invalidateQueries({ queryKey: ["modules"] });
   qc.invalidateQueries({ queryKey: ["stats"] });
   qc.invalidateQueries({ queryKey: keys.storage() });
 }
